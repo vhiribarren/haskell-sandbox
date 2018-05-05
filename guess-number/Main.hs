@@ -1,6 +1,7 @@
 module Main where
 
 import System.Random
+import Text.Read
 
 minSecretValue = 0
 maxSecretValue = 1000
@@ -11,8 +12,11 @@ evalGuess guess secret = compare guess secret
 guessAttempt :: Int -> IO (Ordering)
 guessAttempt secret = do
   putStrLn "New guess?"
-  guess <- readLn :: IO (Int) 
-  return $ evalGuess guess secret
+  inputStr <- getLine :: IO (String)
+  let guessMay = readMaybe inputStr :: Maybe (Int) in
+    case guessMay of
+      Nothing -> do putStrLn "Bad input"; guessAttempt secret
+      Just guess -> return $ evalGuess guess secret
 
 displayHint :: Ordering -> IO ()
 displayHint result = case result of
