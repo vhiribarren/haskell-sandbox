@@ -10,3 +10,9 @@ First usage of:
 - functor operation
 - IO type
 
+Lots of IO returning functions, but there is no real point to try having lots
+of pure functions in this kind of program.
+
+To run:
+
+    $ cabal run
