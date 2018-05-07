@@ -6,17 +6,19 @@ import Text.Read
 minSecretValue = 0
 maxSecretValue = 1000
 
-evalGuess :: Int -> Int -> Ordering 
-evalGuess guess secret = compare guess secret 
+type Guess = Int
+type Secret = Int
+
+evalGuess :: Guess -> Secret -> Ordering 
+evalGuess = compare 
 
 guessAttempt :: Int -> IO (Ordering)
 guessAttempt secret = do
   putStrLn "New guess?"
-  inputStr <- getLine :: IO (String)
-  let guessMay = readMaybe inputStr :: Maybe (Int) in
-    case guessMay of
-      Nothing -> do putStrLn "Bad input"; guessAttempt secret
-      Just guess -> return $ evalGuess guess secret
+  guessMay <- readMaybe <$> getLine
+  case guessMay of
+    Nothing -> do putStrLn "Bad input"; guessAttempt secret
+    Just guess -> return $ evalGuess guess secret
 
 displayHint :: Ordering -> IO ()
 displayHint result = case result of
