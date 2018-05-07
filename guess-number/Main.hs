@@ -20,16 +20,16 @@ guessAttempt secret = do
     Nothing -> do putStrLn "Bad input"; guessAttempt secret
     Just guess -> return $ evalGuess guess secret
 
-displayHint :: Ordering -> IO ()
-displayHint result = case result of
-  LT -> putStrLn "You are below"
-  GT -> putStrLn "You are above"
-  EQ -> putStrLn "You found the good value"
+getHint :: Ordering -> String 
+getHint result = case result of
+  LT -> "You are below"
+  GT -> "You are above"
+  EQ -> "You found the good value"
 
 gameLoop :: Int -> Int -> IO ()
 gameLoop secret attemptCount = do
   result <- guessAttempt secret
-  displayHint result
+  putStrLn $ getHint result
   if result == EQ
     then putStrLn $ "Found in " ++ show attemptCount ++ " attempts" 
     else gameLoop secret (attemptCount + 1)  
