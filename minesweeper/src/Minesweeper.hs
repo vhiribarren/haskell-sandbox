@@ -5,7 +5,7 @@ import System.Random
 
 data Cell = Bomb | NearbyBomb Int
     deriving Show
-data CellView = Cell | Flag | Hidden
+data CellView = VisibleCell Cell | Flag | Hidden
     deriving Show
 
 type Width = Int
@@ -14,6 +14,28 @@ type Dimensions = (Width, Height)
 type Coords = (Width, Height)
 type Field = Array (Int,Int) Cell 
 type FieldView = Array (Int,Int) CellView
+
+
+data Game = Game {
+    gameField :: Field,
+    gameFieldView :: FieldView,
+    gameWidth :: Width,
+    gameHeight :: Height
+}
+
+
+mkGame :: Field -> Game
+mkGame field = let ((minW, minH), (maxW, maxH)) = bounds field in Game {
+    gameField = field,
+    gameFieldView = emptyFieldView (maxW, maxH),
+    gameWidth = maxW,
+    gameHeight = maxH
+}
+ 
+
+minCoords, maxCoords :: Coords
+minCoords = (1, 1)
+maxCoords = (10, 10)
 
 emptyField :: Dimensions -> Field
 emptyField (width, height) = array ((1, 1), (width,height)) [((w,h), NearbyBomb 0) | w <- [1..width], h <- [1..height]]

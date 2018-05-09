@@ -1,5 +1,7 @@
 module Main where
 
+import Minesweeper
+
 import Control.Monad (void, when)
 import Control.Monad.IO.Class
 
@@ -12,14 +14,8 @@ import qualified Graphics.Vty as V
 
 type AppEvent = ()
 
-data Game = Empty | C Int Int
 data Name = CellCoord Int Int
     deriving (Eq, Ord)
-
-hiddenCellW, emptyCellW, bombCellW :: Widget Name
-hiddenCellW = str " · "
-emptyCellW = str "   "
-bombCellW = str " × "
 
 
 drawUI :: Game -> [Widget Name]
@@ -27,7 +23,6 @@ drawUI g = [ center (drawInfo g) <+>  center (drawMinesweeper g) ]
 
 
 drawInfo :: Game -> Widget Name
-drawInfo (C x y) = str "bouh"
 drawInfo _ = str "Minesweeper game"
     <=> str " "
     <=> str "click to discover cell"
@@ -38,10 +33,27 @@ drawInfo _ = str "Minesweeper game"
 drawMinesweeper :: Game -> Widget Name
 drawMinesweeper g = withBorderStyle unicode
     $ borderWithLabel (str "MineSweeper")
-    $ vBox createRows
+    $ vBox rows 
     where
-        createRows = [hBox $ createColumns h | h <- [1..10]]
-        createColumns h = [clickable (CellCoord w h) $ hiddenCellW | w <- [1..10]] 
+        rows = [hBox $ createCells h | h <- [1..gameHeight g]]
+        createCells h = [clickable (CellCoord w h) $ viewCell w h | w <- [1..gameWidth g]]
+        -- viewCell w h =  drawCellView $ getCellView (gameFieldView g) (w, h)
+        viewCell w h =  drawCell $ getCell (gameField g) (w, h)
+
+
+drawCellView :: CellView -> Widget Name
+drawCellView cellView = case cellView of
+    Hidden -> str " . "
+    Flag -> str " ! "
+    VisibleCell cell -> drawCell cell
+
+
+drawCell :: Cell -> Widget Name
+drawCell cell = case cell of
+    Bomb -> str " × "
+    NearbyBomb 0 -> str "   "
+    NearbyBomb n -> str $ " " ++ show n ++ " "
+    
 
 handleEvent :: Game -> BrickEvent Name AppEvent -> EventM Name (Next Game)
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
@@ -51,7 +63,7 @@ handleEvent g _ = continue g
 
 
 discoverCell :: Game -> Name -> [V.Modifier] -> Game
-discoverCell g name modifiers = C 0 0
+discoverCell g name modifiers = g 
 
 
 app :: App Game AppEvent Name
@@ -63,11 +75,18 @@ app = App { appDraw = drawUI
           }
 
 
+mouseSupport :: IO V.Vty
+mouseSupport = do
+    v <- V.mkVty =<< V.standardIOConfig
+    V.setMode (V.outputIface v) V.Mouse True
+    return v
+
+
 main :: IO ()
 main = do
-    let initialState = Empty
-    let buildVty = do
-          v <- V.mkVty =<< V.standardIOConfig
-          V.setMode (V.outputIface v) V.Mouse True
-          return v
-    void $ customMain buildVty Nothing app initialState 
+    let width = 10
+        height = 10
+        nbBomb = 10
+    field <- genRandomField (width, height) nbBomb 
+    let initialState = mkGame field 
+    void $ customMain mouseSupport Nothing app initialState 
