@@ -1,4 +1,4 @@
-module Main where
+module Minesweeper where
 
 import Data.Array.IArray
 import System.Random
@@ -92,4 +92,4 @@ activateCell fieldView field coords = case (getCellView coords) of
     _ -> (fieldView, True)
 -}
 
-main = genRandomField (3,3) 2 >>= print 
+-- main = genRandomField (3,3) 2 >>= print 
