@@ -100,18 +100,18 @@ flagCell fieldView coords = case (getCellView coords) of
     Flag -> fieldView // [(coords, Hidden)]
     Hidden -> fieldView // [(coords, Flag)]
     Cell -> fieldView 
-
+-}
  
 activateCell :: FieldView -> Field -> Coords -> (FieldView, Bool) 
-activateCell fieldView field coords = case (getCellView coords) of
-    Hidden -> case (getCell coords) of
-        Bomb -> (fieldView // [(coords, Bomb)], False)
-        _ -> deforestFieldView fieldView field [coords] [] 
+activateCell fieldView field coords = case (getCellView fieldView coords) of
+    Hidden -> case (getCell field coords) of
+        Bomb -> (fieldView // [(coords, VisibleCell Bomb)], False)
+        _ -> (deforestFieldView fieldView field [coords] [] , True)
         where
+            cellContent = getCell field coords
             deforestFieldView :: FieldView -> Field -> [Coords] -> [Coords] -> FieldView
-            deforestFieldView fieldView field testCoords usedCoords =
-                let newTestCoords = 
+            deforestFieldView fieldView field (c:cs) usedCoords = fieldView // [(c, VisibleCell cellContent) ]
     _ -> (fieldView, True)
--}
+
 
 -- main = genRandomField (3,3) 2 >>= print 

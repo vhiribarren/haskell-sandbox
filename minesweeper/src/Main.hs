@@ -14,7 +14,7 @@ import qualified Graphics.Vty as V
 
 type AppEvent = ()
 
-data Name = CellCoord Int Int
+data Name = CellCoord (Int, Int)
     deriving (Eq, Ord)
 
 
@@ -36,9 +36,9 @@ drawMinesweeper g = withBorderStyle unicode
     $ vBox rows 
     where
         rows = [hBox $ createCells h | h <- [1..gameHeight g]]
-        createCells h = [clickable (CellCoord w h) $ viewCell w h | w <- [1..gameWidth g]]
-        -- viewCell w h =  drawCellView $ getCellView (gameFieldView g) (w, h)
-        viewCell w h =  drawCell $ getCell (gameField g) (w, h)
+        createCells h = [clickable (CellCoord (w, h)) $ viewCell w h | w <- [1..gameWidth g]]
+        viewCell w h =  drawCellView $ getCellView (gameFieldView g) (w, h)
+        -- viewCell w h =  drawCell $ getCell (gameField g) (w, h)
 
 
 drawCellView :: CellView -> Widget Name
@@ -63,7 +63,13 @@ handleEvent g _ = continue g
 
 
 discoverCell :: Game -> Name -> [V.Modifier] -> Game
-discoverCell g name modifiers = g 
+discoverCell g name modifiers = g {
+        gameFieldView = newFieldView 
+    }
+    where CellCoord coords = name 
+          fieldView = gameFieldView g
+          field = gameField g
+          (newFieldView, result) = activateCell fieldView field coords
 
 
 app :: App Game AppEvent Name
