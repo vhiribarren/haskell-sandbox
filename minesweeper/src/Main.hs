@@ -50,7 +50,7 @@ drawCellView cellView = case cellView of
 
 drawCell :: Cell -> Widget Name
 drawCell cell = case cell of
-    Bomb -> str " × "
+    Bomb -> str " 🔥 "
     NearbyBomb 0 -> str "   "
     NearbyBomb n -> str $ " " ++ show n ++ " "
     

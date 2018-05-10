@@ -1,5 +1,7 @@
 module Minesweeper where
 
+import Data.Set (Set)
+import qualified Data.Set as Set
 import Data.Array.IArray
 import System.Random
 
@@ -61,7 +63,7 @@ hasBomb field coords = case (getCell field coords) of
     Bomb -> True
     _ -> False
 
-nearbyCells :: Field -> Coords -> [Coords] 
+nearbyCells :: Array Coords e -> Coords -> [Coords] 
 nearbyCells field (w, h) =
     let (_, (fieldWidth, fieldHeight)) = bounds field
         minX = max (w-1) 1
@@ -106,20 +108,31 @@ flagCell g coords = g {
     }
     where fieldView = gameFieldView g 
  
+
 discoverCell :: Game -> Coords -> Game
 discoverCell g coords = 
     let fieldView = gameFieldView g
         field = gameField g
         failure = hasBomb field coords
         cellContent = getCell field coords
-        deforestFieldView :: FieldView -> Field -> [Coords] -> [Coords] -> FieldView
-        deforestFieldView fieldView field (c:cs) usedCoords = fieldView // [(c, VisibleCell cellContent) ]
     in g {
         gameFailure = failure,
         gameFieldView = case (getCellView fieldView coords) of
             Hidden -> case (getCell field coords) of
                 Bomb -> fieldView // [(coords, VisibleCell Bomb)]
-                _ -> deforestFieldView fieldView field [coords] []
-                where
+                _ -> deforestFieldView fieldView field [coords] Set.empty
             _ -> fieldView
     }
+
+
+deforestFieldView :: FieldView -> Field -> [Coords] -> Set Coords -> FieldView
+deforestFieldView fieldView field (c:cs) usedCoords =
+    let cellContent = getCell field c
+        newFieldView = fieldView // [(c, VisibleCell cellContent) ]
+        newUsedCoords = Set.insert c usedCoords
+        newCandidates = case cellContent of
+            NearbyBomb 0 -> [ nc | nc <- nearbyCells fieldView c, Set.notMember nc newUsedCoords]
+            _ -> []
+    in deforestFieldView newFieldView field (newCandidates ++ cs) newUsedCoords
+
+deforestFieldView fieldView _ [] _ = fieldView
