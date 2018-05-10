@@ -25,8 +25,13 @@ drawUI g = [ center (drawInfo g) <+>  center (drawMinesweeper g) ]
 drawInfo :: Game -> Widget Name
 drawInfo _ = str "Minesweeper game"
     <=> str " "
-    <=> str "click to discover cell"
-    <=> str "ctrl+click to flag or unflag a cell"
+    <=> str "Click to discover cell"
+    <=> str "Shift+click to flag or unflag a cell"
+    <=> str " "
+    <=> str "'b' beginner field"
+    <=> str "'i' intermediate field"
+    <=> str "'e' expert field"
+    <=> str " "
     <=> str "'q' or ctrl+c to quit"
 
 
@@ -44,7 +49,7 @@ drawMinesweeper g = withBorderStyle unicode
 drawCellView :: CellView -> Widget Name
 drawCellView cellView = case cellView of
     Hidden -> str " · "
-    Flag -> str " ! "
+    Flag -> str " 🏳 "
     VisibleCell cell -> drawCell cell
 
 
@@ -53,10 +58,13 @@ drawCell cell = case cell of
     Bomb -> str " 🔥 "
     NearbyBomb 0 -> str "   "
     NearbyBomb n -> str $ " " ++ show n ++ " "
-    
+
 
 handleEvent :: Game -> BrickEvent Name AppEvent -> EventM Name (Next Game)
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'b') [])) = mkGame <$> liftIO genBeginnerField >>= continue
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'i') [])) = mkGame <$> liftIO genIntermediateField >>= continue
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'e') [])) = mkGame <$> liftIO genExpertField >>= continue
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = halt g
 handleEvent g (MouseDown (CellCoord coords) _ [V.MShift] _) = continue $ flagCell g coords
 handleEvent g (MouseDown (CellCoord coords) _ _ _) = continue $ discoverCell g coords 
@@ -81,9 +89,6 @@ mouseSupport = do
 
 main :: IO ()
 main = do
-    let width = 10
-        height = 10
-        nbBomb = 10
-    field <- genRandomField (width, height) nbBomb 
+    field <- genBeginnerField
     let initialState = mkGame field 
     void $ customMain mouseSupport Nothing app initialState 

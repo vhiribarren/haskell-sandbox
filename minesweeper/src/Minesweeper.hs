@@ -98,6 +98,10 @@ genRandomField dimensions maxBomb = addBomb (emptyField dimensions) maxBomb
             then addBomb field nbBomb
             else addBomb (updateFieldWithBomb field bombCoords) (nbBomb -1)
 
+genBeginnerField, genIntermediateField, genExpertField :: IO Field
+genBeginnerField = genRandomField (8, 8) 10
+genIntermediateField = genRandomField (16, 16) 40
+genExpertField = genRandomField (24, 24) 99
 
 flagCell :: Game -> Coords -> Game 
 flagCell g coords = g {
