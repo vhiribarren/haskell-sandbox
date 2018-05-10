@@ -15,7 +15,7 @@ cabal-version:        >=1.10
 
 executable Minesweeper
   main-is:              Main.hs
-  -- other-modules:
+  other-modules:        Minesweeper
   -- other-extensions:
   ghc-options:          -threaded -rtsopts
   build-depends:        base >= 4.7 && < 5
@@ -32,3 +32,4 @@ Test-Suite Minesweeper-test
   hs-source-dirs:       test
   build-depends:        base
                       , HUnit	
+  default-language:     Haskell2010
