@@ -43,7 +43,7 @@ drawMinesweeper g = withBorderStyle unicode
 
 drawCellView :: CellView -> Widget Name
 drawCellView cellView = case cellView of
-    Hidden -> str " . "
+    Hidden -> str " · "
     Flag -> str " ! "
     VisibleCell cell -> drawCell cell
 
