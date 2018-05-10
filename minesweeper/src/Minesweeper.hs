@@ -20,7 +20,8 @@ data Game = Game {
     gameField :: Field,
     gameFieldView :: FieldView,
     gameWidth :: Width,
-    gameHeight :: Height
+    gameHeight :: Height,
+    gameFailure :: Bool
 }
 
 
@@ -29,7 +30,8 @@ mkGame field = let ((minW, minH), (maxW, maxH)) = bounds field in Game {
     gameField = field,
     gameFieldView = emptyFieldView (maxW, maxH),
     gameWidth = maxW,
-    gameHeight = maxH
+    gameHeight = maxH,
+    gameFailure = False
 }
  
 
@@ -94,24 +96,30 @@ genRandomField dimensions maxBomb = addBomb (emptyField dimensions) maxBomb
             then addBomb field nbBomb
             else addBomb (updateFieldWithBomb field bombCoords) (nbBomb -1)
 
-{-
-flagCell :: FieldView -> Coords -> FieldView
-flagCell fieldView coords = case (getCellView coords) of
-    Flag -> fieldView // [(coords, Hidden)]
-    Hidden -> fieldView // [(coords, Flag)]
-    Cell -> fieldView 
--}
+
+flagCell :: Game -> Coords -> Game 
+flagCell g coords = g {
+    gameFieldView = case (getCellView fieldView coords) of
+        Flag -> fieldView // [(coords, Hidden)]
+        Hidden -> fieldView // [(coords, Flag)]
+        _ -> fieldView 
+    }
+    where fieldView = gameFieldView g 
  
-activateCell :: FieldView -> Field -> Coords -> (FieldView, Bool) 
-activateCell fieldView field coords = case (getCellView fieldView coords) of
-    Hidden -> case (getCell field coords) of
-        Bomb -> (fieldView // [(coords, VisibleCell Bomb)], False)
-        _ -> (deforestFieldView fieldView field [coords] [] , True)
-        where
-            cellContent = getCell field coords
-            deforestFieldView :: FieldView -> Field -> [Coords] -> [Coords] -> FieldView
-            deforestFieldView fieldView field (c:cs) usedCoords = fieldView // [(c, VisibleCell cellContent) ]
-    _ -> (fieldView, True)
-
-
--- main = genRandomField (3,3) 2 >>= print 
+discoverCell :: Game -> Coords -> Game
+discoverCell g coords = 
+    let fieldView = gameFieldView g
+        field = gameField g
+        failure = hasBomb field coords
+        cellContent = getCell field coords
+        deforestFieldView :: FieldView -> Field -> [Coords] -> [Coords] -> FieldView
+        deforestFieldView fieldView field (c:cs) usedCoords = fieldView // [(c, VisibleCell cellContent) ]
+    in g {
+        gameFailure = failure,
+        gameFieldView = case (getCellView fieldView coords) of
+            Hidden -> case (getCell field coords) of
+                Bomb -> fieldView // [(coords, VisibleCell Bomb)]
+                _ -> deforestFieldView fieldView field [coords] []
+                where
+            _ -> fieldView
+    }

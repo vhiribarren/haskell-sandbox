@@ -58,18 +58,9 @@ drawCell cell = case cell of
 handleEvent :: Game -> BrickEvent Name AppEvent -> EventM Name (Next Game)
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = halt g
-handleEvent g (MouseDown name button modifiers coords) = continue $ discoverCell g name modifiers
+handleEvent g (MouseDown (CellCoord coords) _ [V.MShift] _) = continue $ flagCell g coords
+handleEvent g (MouseDown (CellCoord coords) _ _ _) = continue $ discoverCell g coords 
 handleEvent g _ = continue g
-
-
-discoverCell :: Game -> Name -> [V.Modifier] -> Game
-discoverCell g name modifiers = g {
-        gameFieldView = newFieldView 
-    }
-    where CellCoord coords = name 
-          fieldView = gameFieldView g
-          field = gameField g
-          (newFieldView, result) = activateCell fieldView field coords
 
 
 app :: App Game AppEvent Name
